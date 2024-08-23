@@ -461,7 +461,7 @@ def get_negative_mask(batch_size):
     return negative_mask
 
 
-def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, COLT=None):
+def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, OC=None):
 
     if features2 is None:
         out = F.normalize(x, dim=-1)
@@ -511,7 +511,7 @@ def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, COLT=None):
     loss = (- torch.log(pos / (pos + Ng)))
     loss_reshape = loss.clone().detach().view(2, batch_size).mean(0)
     loss = loss.mean()
-    if (index == -1).sum() != 0 and COLT:
+    if (index == -1).sum() != 0 and OC:
         sup_loss = (- torch.log(sup_neg / (pos + Ng)))
         sup_loss = sup_weight * (1/(mask_pos_view.sum(1))) * (mask_pos_view * sup_loss).sum(1)
         loss += sup_loss.mean()
@@ -581,7 +581,7 @@ cls_num_list =dataset_train.get_cls_num_list()
 cls_num = len(cls_num_list)
 print(cls_num_list,cls_num,sum(cls_num_list))
 criterion_ce = LogitAdjust(cls_num_list).to(device)
-criterion_scl = BalSCL(cls_num_list, 0.05).to(device)
+criterion_scl = CCLC(cls_num_list, 0.05).to(device)
 #criterion_SC =SupConLoss(temperature=0.05).to(device)
 #criterion_ccl=SupConLoss_ccl(temperature=0.1, grama=0.25, base_temperature=0.07).to(device)
         #self.writer = SummaryWriter('log')
@@ -667,7 +667,7 @@ for epoch in range(25):
             neg_logits, loss_sample_wise, loss3 = nt_xent(out, t=0.5,
                                                                      index=index,
                                                                      sup_weight=0.2,
-                                                                     COLT=True)
+                                                                     OC=True)
             neg_logits = neg_logits.mean(dim=0).detach()
             for count in range(out.shape[0] // 2):
                 if not index[count] == -1:
@@ -845,7 +845,7 @@ for epoch in range(130):
         
         criterion_ce = LogitAdjust(cls_num_list).to(device)
         #criterion_scl1 = BalSCL2(cls_num_list, temperature=0.05, grama=0.25, base_temperature=0.07).to(device)
-        criterion_scl = BalSCL(cls_num_list, 0.05).to(device)
+        criterion_scl = CCLC(cls_num_list, 0.05).to(device)
         #criterion_ccl = SupConLoss_ccl(temperature=0.1, grama=0.25, base_temperature=0.07).to(device)
         #cen=cluster(trloader,encoder,cluster_number,cls_num_list,"kmeans")
         #replace_col_dataset = ReplaceColumnConcatDataset(new_train_datasets, cen)
@@ -906,7 +906,7 @@ for epoch in range(130):
             neg_logits, loss_sample_wise, loss3 = nt_xent(out, t=0.5,
                                                                      index=index,
                                                                      sup_weight=0.2,
-                                                                     COLT=True)
+                                                                     OC=True)
             neg_logits = neg_logits.mean(dim=0).detach()
             for count in range(out.shape[0] // 2):
                 if not index[count] == -1:
