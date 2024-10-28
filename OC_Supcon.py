@@ -641,7 +641,6 @@ for epoch in range(25):
             features = torch.cat([f2.unsqueeze(1), f3.unsqueeze(1)], dim=1)
             logits, _, __ = torch.split(logits, [batch_size, batch_size, batch_size], dim=0)
             out = torch.cat([f2, f3], dim=0)
-            index = torch.cat((index, index), 0)
             if (i + 1) == len(trloader):
                 res = len(trloader.dataset) % len(trloader)
                 #last_batch_each_gpu = math.ceil(len(index) / len(trloader))
