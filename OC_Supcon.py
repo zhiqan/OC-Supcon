@@ -727,7 +727,7 @@ for epoch in range(25):
             
             pbar.update(1)
             global_step += 1
-        momentum_weight = momentum_tail_score[epoch]
+        #momentum_weight = momentum_tail_score[epoch-1]
         
 #save_file = 'D:\\自监督长尾故障诊断\\premodel_step_0.9432.pth'.format(epoch) #you should add file
 #torch.save(encoder.state_dict(),save_file)   
@@ -811,7 +811,7 @@ for epoch in range(130):
     top5 = AverageMeter('Acc@5', ':6.2f')
     end = time.time()
     encoder1.train()
-    if epoch>0 and epoch%30==0:
+    if epoch>0 and (epoch-1)%30==0:
         a=validate(teloader, encoder1, flag='val')
         sample_idx,clulabel = sample_batch(train_loader_test_trans, encoder1,sample_loader_test_trans,
                                 momentum_weight, args=None)
@@ -910,7 +910,7 @@ for epoch in range(130):
             neg_logits = neg_logits.mean(dim=0).detach()
             for count in range(out.shape[0] // 2):
                 if not index[count] == -1:
-                    if epoch > 1:
+                    if epoch > 0:
                         new_average = (1.0 - beta) * neg_logits[count].sort(descending=True)[0][
                                                                         :k_largest_logits].sum().clone().detach() \
                                       + beta * shadow[index[count]]
@@ -962,7 +962,7 @@ for epoch in range(130):
              
             pbar.update(1)
             global_step += 1
-        momentum_weight = momentum_tail_score[epoch]
+    momentum_weight = momentum_tail_score[epoch-1]
     if (epoch+1) %10  == 0:
         a=validate(teloader, encoder1, flag='val')
     if (epoch+1) %30 == 0 and epoch >10:
