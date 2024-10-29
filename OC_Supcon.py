@@ -671,7 +671,7 @@ for epoch in range(25):
             neg_logits = neg_logits.mean(dim=0).detach()
             for count in range(out.shape[0] // 2):
                 if not index[count] == -1:
-                    if epoch > 1:
+                    if epoch > 0:
                         new_average = (1.0 - beta) * neg_logits[count].sort(descending=True)[0][
                                                                         :k_largest_logits].sum().clone().detach() \
                                       + beta * shadow[index[count]]
