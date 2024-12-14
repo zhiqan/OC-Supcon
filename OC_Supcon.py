@@ -129,6 +129,20 @@ class CWRUDataset(Dataset):
     def Translation(self, x, p=0.5):
         a = len(x)
         return np.concatenate((x[int(a*p):], x[0:int(a*p)]), axis=0)
+    def mask_noise(self,x,probability=0.2):
+        x=torch.from_numpy(x)
+        masked_data = x.clone()
+        
+        # 生成一个同样大小的随机布尔张量，True表示将对应的数据点设置为0.5
+        random_numbers = torch.rand_like(masked_data)
+    
+    # 设定阈值，小于阈值的数据点将被设置为0.5
+        threshold = probability
+    
+    # 应用阈值，将随机选择的数据点设置为0.5
+        masked_data[random_numbers < threshold] = 0.5
+    
+        return masked_data
 
     def loadCSV(self, csvf):
         dictLabels = {}
@@ -156,7 +170,7 @@ class CWRUDataset(Dataset):
             pic = pic.values
 
             if self.simclr:
-                ccc = ['self.Amplitude_scale(pic)', 'self.Translation(pic)', 'self.add_wgn(pic)', 'self.add_laplace_noise(pic)']
+                ccc = ['self.mask_noise(pic)','self.Amplitude_scale(pic)', 'self.Translation(pic)', 'self.add_wgn(pic)', 'self.add_laplace_noise(pic)']
                 n1 = np.random.choice(ccc, 3, replace=False)
                 aa = pic.T
                 bb = eval(n1[1]).T
@@ -483,7 +497,7 @@ def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, OC=None):
 
     sup_neg = neg
 
-    if (index == -1).sum() != 0 and COLT:
+    if (index == -1).sum() != 0 and OC:
         id_mask = (index != -1)
         ood_mask = (index == -1)
 
@@ -521,7 +535,7 @@ def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, OC=None):
 
 import math
 
-COLT=True
+OC=True
 num_classes=109
 
 
@@ -793,15 +807,15 @@ criterion_scl = CCLC(cls_num_list, 0.05).to(device)
 
 
 a1=len(new_train_datasets)
-momentum_tail_score = torch.zeros(tatol_epoch,a1).to(device)
-shadow = torch.zeros(a1)
+#momentum_tail_score = torch.zeros(tatol_epoch,a1).to(device)
+#shadow = torch.zeros(a1)
 #encoder1 = RSNet(BasicBlock, [2, 2, 2, 2],num_classes).to(device)
 encoder1 = encoder
 lr_decay_factor=0.1
 lr_decay_epoch=14
 for epoch in range(130):
-    if  epoch%30==0:
-        lr=0.001
+    #if  epoch%30==0:
+        #lr=0.001
     adjust_learning_rate(optimizer, epoch, lr, lr_decay_factor, lr_decay_epoch)
     batch_time = AverageMeter('Time', ':6.3f')
     ce_loss_all = AverageMeter('CE_Loss', ':.4e')
