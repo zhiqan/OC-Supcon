@@ -121,6 +121,18 @@ class HITDataset(Dataset):
     def Translation(self, x, p=0.5):
         a = len(x)
         return np.concatenate((x[int(a*p):], x[:int(a*p)]), axis=0)
+    def mask_noise(self,x,probability=0.2):
+        x=torch.from_numpy(x)
+        masked_data = x.clone()
+        
+       
+        random_numbers = torch.rand_like(masked_data)
+
+        threshold = probability
+    
+        masked_data[random_numbers < threshold] = 0.5
+    
+        return masked_data
 
     def __getitem__(self, index):
 
@@ -134,7 +146,7 @@ class HITDataset(Dataset):
 
 
             if self.simclr:
-                ccc = ['self.Amplitude_scale(pic)', 'self.Translation(pic)', 'self.add_wgn(pic)', 'self.add_laplace_noise(pic)']
+                ccc = ['self.mask_noise(pic)','self.Amplitude_scale(pic)', 'self.Translation(pic)', 'self.add_wgn(pic)', 'self.add_laplace_noise(pic)']
                 n1 = np.random.choice(ccc, 3, replace=False)
                 aa = pic.T
                 bb = eval(n1[1]).T
