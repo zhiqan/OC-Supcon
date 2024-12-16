@@ -175,10 +175,6 @@ class HITDataset(Dataset):
     def __len__(self):
         return len(self.targets)
     
-        
-ood_train = Random_HITDataset(data_array, labels_array, rand_number=0, ood=False)   #INDEX
-
-ood_train_tran = Random_HITDataset(data_array, labels_array, rand_number=0, ood=True)  #INDEX=-1
 
 ood_loader = torch.utils.data.DataLoader(
                 ood_train, 
@@ -469,7 +465,7 @@ def get_negative_mask(batch_size):
     negative_mask = torch.cat((negative_mask, negative_mask), 0)
     return negative_mask
 
-def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, COLT=None):
+def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, OC=None):
     # x: 输入特征，通常是模型的输出
     # t: 温度参数，用于调整对比损失的尺度
     # features2: 另一个特征集，用于计算正样本对
@@ -496,7 +492,7 @@ def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, COLT=None):
 
     sup_neg = neg  # 保存原始的负样本对相似性矩阵
 
-    if (index == -1).sum() != 0 and COLT:
+    if (index == -1).sum() != 0 and OC:
         id_mask = (index != -1)  # 识别出在数据集中存在的类别（正样本）
         ood_mask = (index == -1)  # 识别出超出分布的数据（负样本）
 
@@ -531,8 +527,8 @@ def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, COLT=None):
     loss_reshape = loss.clone().detach().view(2, batch_size).mean(0)  # 计算每个正样本对的损失
     loss = loss.mean()  # 计算所有样本对的平均损失
 
-    # 如果 COLT 标志为真且有超出分布的数据，则计算额外的监督损失
-    if (index == -1).sum() != 0 and COLT:
+    # 如果OC 标志为真且有超出分布的数据，则计算额外的监督损失
+    if (index == -1).sum() != 0 and OC:
         sup_loss = (- torch.log(sup_neg / (pos + Ng)))
         sup_loss = sup_weight * (1/(mask_pos_view.sum(1))) * (mask_pos_view * sup_loss).sum(1)
         loss += sup_loss.mean()  # 将监督损失加入到最终的总损失中
@@ -541,7 +537,7 @@ def nt_xent(x, t=0.5, features2=None, index=None, sup_weight=0, COLT=None):
 
 import math
 
-COLT=True
+OC=True
 
 
 
@@ -688,7 +684,7 @@ for epoch in range(1,preepoch):
             neg_logits, loss_sample_wise, loss3 = nt_xent(out, t=0.5,
                                                                      index=index,
                                                                      sup_weight=0.2,
-                                                                     COLT=True)
+                                                                     OC=True)
             neg_logits = neg_logits.mean(dim=0).detach()
             for count in range(out.shape[0] // 2):
                 if not index[count] == -1:
@@ -925,7 +921,7 @@ for epoch in range(preepoch,tatol_epoch):
             neg_logits, loss_sample_wise, loss3 = nt_xent(out, t=0.5,
                                                                      index=index,
                                                                      sup_weight=0.2,
-                                                                     COLT=True)
+                                                                     OC=True)
             neg_logits = neg_logits.mean(dim=0).detach()
             for count in range(out.shape[0] // 2):
                 if not index[count] == -1:
