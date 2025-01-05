@@ -1,5 +1,5 @@
 # MIXUP
-## [Balanced-MixUp for Highly Imbalanced Medical Image Classification]([(https://github.com/agaldran/balanced_mixup)])
+## [Balanced-MixUp for Highly Imbalanced Medical Image Classification]([https://github.com/agaldran/balanced_mixup])
 # RCL
 ## [Random convolution layer: An auxiliary method to improve fault diagnosis performance]( https://doi.org/10.1007/s10845-024-02458-4)
 
